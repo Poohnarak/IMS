@@ -1,5 +1,6 @@
 'use client'
 
+// Sidebar component with inlined Skeleton to avoid external module resolution issues
 import * as React from 'react'
 import { Slot } from '@radix-ui/react-slot'
 import { VariantProps, cva } from 'class-variance-authority'
