@@ -15,13 +15,14 @@ interface Column<T> {
   render?: (item: T) => ReactNode
 }
 
-interface DataTableProps<T extends Record<string, unknown>> {
+interface DataTableProps<T> {
   columns: Column<T>[]
   data: T[]
   emptyMessage?: string
 }
 
-export function DataTable<T extends Record<string, unknown>>({
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function DataTable<T extends Record<string, any>>({
   columns,
   data,
   emptyMessage = "No data found",

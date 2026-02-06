@@ -1,8 +1,6 @@
 "use client"
 
-import React from "react"
-
-import { useState, useCallback } from "react"
+import { useState } from "react"
 import {
   Camera,
   Upload,
@@ -39,19 +37,19 @@ export default function ScanReceiptPage() {
   const [isConfirming, setIsConfirming] = useState(false)
   const [confirmSuccess, setConfirmSuccess] = useState(false)
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
+  const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
-  }, [])
+  }
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
     const files = e.dataTransfer.files
     if (files && files[0]) {
       handleFileSelect(files[0])
     }
-  }, [])
+  }
 
   const handleFileSelect = (file: File) => {
     if (file.type.startsWith("image/")) {

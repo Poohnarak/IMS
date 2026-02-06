@@ -1,8 +1,6 @@
 "use client"
 
-import React from "react"
-
-import { useState, useCallback } from "react"
+import { useState } from "react"
 import { Upload, FileSpreadsheet, X, Check, AlertCircle } from "lucide-react"
 import { PageHeader } from "@/components/shared/page-header"
 import { Button } from "@/components/ui/button"
@@ -48,19 +46,19 @@ export default function ImportSalesPage() {
   const [isImporting, setIsImporting] = useState(false)
   const [importSuccess, setImportSuccess] = useState(false)
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
+  const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
-  }, [])
+  }
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
     const files = e.dataTransfer.files
     if (files && files[0]) {
       handleFileSelect(files[0])
     }
-  }, [])
+  }
 
   const handleFileSelect = (file: File) => {
     if (file.type === "text/csv" || file.name.endsWith(".csv")) {
