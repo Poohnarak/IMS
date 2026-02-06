@@ -52,19 +52,19 @@ const sourceConfig: Record<
   grab: {
     label: "Grab",
     icon: Bike,
-    color: "bg-emerald-500/10 text-emerald-600 border-emerald-200",
+    color: "bg-emerald-500/10 text-emerald-600",
     description: "Import sales data from GrabFood orders",
   },
   lineman: {
     label: "Lineman",
     icon: Store,
-    color: "bg-lime-500/10 text-lime-700 border-lime-200",
+    color: "bg-lime-500/10 text-lime-700",
     description: "Import sales data from LINE MAN orders",
   },
   pos: {
     label: "POS",
     icon: Monitor,
-    color: "bg-sky-500/10 text-sky-600 border-sky-200",
+    color: "bg-sky-500/10 text-sky-600",
     description: "Import sales data from your Point of Sale system",
   },
 }
@@ -207,7 +207,7 @@ export default function ImportSalesPage() {
               >
                 <CardContent className="flex flex-col items-center gap-3 pt-6 pb-6">
                   <div
-                    className={`flex h-14 w-14 items-center justify-center rounded-xl border ${config.color}`}
+                    className={`flex h-14 w-14 items-center justify-center rounded-xl ${config.color}`}
                   >
                     <config.icon className="h-7 w-7" />
                   </div>

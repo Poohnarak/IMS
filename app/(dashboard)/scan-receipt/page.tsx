@@ -174,7 +174,7 @@ export default function ReceiptPage() {
             onClick={() => handleSelectMode("manual")}
           >
             <CardContent className="flex flex-col items-center gap-3 pt-6 pb-6">
-              <div className="flex h-14 w-14 items-center justify-center rounded-xl border bg-amber-500/10 text-amber-600 border-amber-200">
+              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600">
                 <PenLine className="h-7 w-7" />
               </div>
               <div className="text-center">
@@ -191,7 +191,7 @@ export default function ReceiptPage() {
             onClick={() => handleSelectMode("scan")}
           >
             <CardContent className="flex flex-col items-center gap-3 pt-6 pb-6">
-              <div className="flex h-14 w-14 items-center justify-center rounded-xl border bg-violet-500/10 text-violet-600 border-violet-200">
+              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-violet-500/10 text-violet-600">
                 <ScanLine className="h-7 w-7" />
               </div>
               <div className="text-center">
@@ -233,8 +233,8 @@ export default function ReceiptPage() {
             variant="outline"
             className={
               mode === "manual"
-                ? "bg-amber-500/10 text-amber-600 border-amber-200"
-                : "bg-violet-500/10 text-violet-600 border-violet-200"
+                ? "bg-amber-500/10 text-amber-600"
+                : "bg-violet-500/10 text-violet-600"
             }
           >
             {mode === "manual" ? "Manual Entry" : "Scan Receipt"}
