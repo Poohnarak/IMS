@@ -1,4 +1,6 @@
-// Mock data for the inventory management system
+// Mock data for the inventory management system prototype
+
+// ── Types ────────────────────────────────────────────────────────────────────
 
 export interface Ingredient {
   id: string
@@ -36,6 +38,23 @@ export interface ReceiptItem {
   price: number
 }
 
+export interface Shop {
+  id: number
+  shopCode: string
+  shopName: string
+  isActive: boolean
+  createdAt: string
+}
+
+export interface ShopUser {
+  id: number
+  username: string
+  role: "ADMIN" | "STAFF"
+  createdAt: string
+}
+
+// ── Ingredients ──────────────────────────────────────────────────────────────
+
 export const mockIngredients: Ingredient[] = [
   { id: "1", name: "Flour", unit: "kg", costPerUnit: 2.5, currentStock: 50 },
   { id: "2", name: "Sugar", unit: "kg", costPerUnit: 3.0, currentStock: 30 },
@@ -48,6 +67,8 @@ export const mockIngredients: Ingredient[] = [
   { id: "9", name: "Salt", unit: "g", costPerUnit: 0.01, currentStock: 2000 },
   { id: "10", name: "Cream", unit: "L", costPerUnit: 4.0, currentStock: 20 },
 ]
+
+// ── Products ─────────────────────────────────────────────────────────────────
 
 export const mockProducts: Product[] = [
   {
@@ -110,6 +131,8 @@ export const mockProducts: Product[] = [
   },
 ]
 
+// ── Stock Movements ──────────────────────────────────────────────────────────
+
 export const mockStockMovements: StockMovement[] = [
   { id: "1", date: "2026-02-05", type: "Purchase", itemName: "Flour", quantityChange: 25 },
   { id: "2", date: "2026-02-05", type: "Sale", itemName: "Chocolate Cake", quantityChange: -3 },
@@ -125,13 +148,50 @@ export const mockStockMovements: StockMovement[] = [
   { id: "12", date: "2026-01-31", type: "Sale", itemName: "Cream Puffs", quantityChange: -4 },
 ]
 
+// ── Receipt Items ────────────────────────────────────────────────────────────
+
 export const mockReceiptItems: ReceiptItem[] = [
   { id: "1", rawItemName: "FLOUR 25KG", ingredientId: "1", quantity: 25, price: 62.5 },
   { id: "2", rawItemName: "SUGAR WHITE", ingredientId: "2", quantity: 10, price: 30.0 },
   { id: "3", rawItemName: "BUTTER UNSALTED", ingredientId: "3", quantity: 5, price: 40.0 },
 ]
 
-// Dashboard statistics
+// ── Shops (Super Admin) ─────────────────────────────────────────────────────
+
+export const mockShops: Shop[] = [
+  {
+    id: 1,
+    shopCode: "BAKERY01",
+    shopName: "Downtown Bakery",
+    isActive: true,
+    createdAt: "2026-01-15T10:30:00Z",
+  },
+  {
+    id: 2,
+    shopCode: "CAFE01",
+    shopName: "Sunrise Cafe",
+    isActive: true,
+    createdAt: "2026-01-20T14:00:00Z",
+  },
+  {
+    id: 3,
+    shopCode: "PASTRY01",
+    shopName: "Sweet Pastries",
+    isActive: false,
+    createdAt: "2026-01-25T09:15:00Z",
+  },
+]
+
+// ── Shop Users ───────────────────────────────────────────────────────────────
+
+export const mockShopUsers: ShopUser[] = [
+  { id: 1, username: "admin", role: "ADMIN", createdAt: "2026-01-15T10:30:00Z" },
+  { id: 2, username: "staff", role: "STAFF", createdAt: "2026-01-16T08:00:00Z" },
+  { id: 3, username: "baker1", role: "STAFF", createdAt: "2026-01-20T11:00:00Z" },
+]
+
+// ── Dashboard Statistics ─────────────────────────────────────────────────────
+
 export const dashboardStats = {
   totalProducts: mockProducts.length,
   totalIngredients: mockIngredients.length,
@@ -140,4 +200,13 @@ export const dashboardStats = {
     0
   ),
   todaySales: 342.5,
+}
+
+// ── Platform Overview (Super Admin) ──────────────────────────────────────────
+
+export const platformOverview = {
+  totalShops: mockShops.length,
+  activeShops: mockShops.filter((s) => s.isActive).length,
+  disabledShops: mockShops.filter((s) => !s.isActive).length,
+  totalSuperAdmins: 1,
 }

@@ -1,113 +1,85 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { Package2, LogIn, Loader2, Store, ShieldCheck } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { Package2, LogIn, Loader2, Store, ShieldCheck } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "@/components/ui/card"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth } from "@/lib/auth-context";
-import { apiFetch } from "@/lib/api";
-
-interface Shop {
-  id: number;
-  shopCode: string;
-  shopName: string;
-}
+} from "@/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useAuth } from "@/lib/auth-context"
+import { mockShops } from "@/lib/mock-data"
 
 export default function LoginPage() {
-  const router = useRouter();
-  const { user, login, isSuperAdmin } = useAuth();
+  const router = useRouter()
+  const { user, login, isSuperAdmin } = useAuth()
 
-  const [shops, setShops] = useState<Shop[]>([]);
-  const [shopCode, setShopCode] = useState("");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoadingShops, setIsLoadingShops] = useState(true);
+  const [shopCode, setShopCode] = useState(mockShops[0]?.shopCode || "")
+  const [username, setUsername] = useState("")
+  const [password, setPassword] = useState("")
+  const [error, setError] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Redirect if already authenticated
   useEffect(() => {
     if (user) {
       if (isSuperAdmin) {
-        router.replace("/admin");
+        router.replace("/admin")
       } else {
-        router.replace("/");
+        router.replace("/")
       }
     }
-  }, [user, isSuperAdmin, router]);
-
-  // Fetch shops for the dropdown
-  useEffect(() => {
-    async function fetchShops() {
-      try {
-        const res = await apiFetch<{ success: boolean; data: Shop[] }>(
-          "/api/auth/shops"
-        );
-        setShops(res.data);
-        if (res.data.length === 1) {
-          setShopCode(res.data[0].shopCode);
-        }
-      } catch {
-        // Non-blocking: shops might fail but super admin login still works
-      } finally {
-        setIsLoadingShops(false);
-      }
-    }
-    fetchShops();
-  }, []);
+  }, [user, isSuperAdmin, router])
 
   async function handleShopLogin(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
+    e.preventDefault()
+    setError("")
 
     if (!shopCode) {
-      setError("Please select a shop");
-      return;
+      setError("Please select a shop")
+      return
     }
 
-    setIsSubmitting(true);
+    setIsSubmitting(true)
     try {
-      await login(username, password, shopCode);
-      router.replace("/");
+      await login(username, password, shopCode)
+      router.replace("/")
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Login failed. Please try again."
-      );
+      )
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
   }
 
   async function handleSuperAdminLogin(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    setIsSubmitting(true);
+    e.preventDefault()
+    setError("")
+    setIsSubmitting(true)
     try {
-      await login(username, password);
-      router.replace("/admin");
+      await login(username, password)
+      router.replace("/admin")
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Login failed. Please try again."
-      );
+      )
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
   }
 
@@ -129,17 +101,15 @@ export default function LoginPage() {
         <Card>
           <CardHeader className="pb-4">
             <CardTitle className="text-lg">Sign In</CardTitle>
-            <CardDescription>
-              Choose your login type below
-            </CardDescription>
+            <CardDescription>Choose your login type below</CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs
               defaultValue="shop"
               onValueChange={() => {
-                setError("");
-                setUsername("");
-                setPassword("");
+                setError("")
+                setUsername("")
+                setPassword("")
               }}
             >
               <TabsList className="grid w-full grid-cols-2 mb-4">
@@ -158,23 +128,14 @@ export default function LoginPage() {
                 <form onSubmit={handleShopLogin} className="flex flex-col gap-4">
                   <div className="flex flex-col gap-2">
                     <Label htmlFor="shop">Shop</Label>
-                    {isLoadingShops ? (
-                      <div className="flex items-center gap-2 h-10 px-3 rounded-md border border-input bg-muted text-sm text-muted-foreground">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        <span>Loading shops...</span>
-                      </div>
-                    ) : shops.length === 0 ? (
-                      <div className="flex items-center gap-2 h-10 px-3 rounded-md border border-input bg-muted text-sm text-muted-foreground">
-                        <Store className="h-4 w-4" />
-                        <span>No shops available</span>
-                      </div>
-                    ) : (
-                      <Select value={shopCode} onValueChange={setShopCode}>
-                        <SelectTrigger id="shop">
-                          <SelectValue placeholder="Select a shop" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {shops.map((shop) => (
+                    <Select value={shopCode} onValueChange={setShopCode}>
+                      <SelectTrigger id="shop">
+                        <SelectValue placeholder="Select a shop" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {mockShops
+                          .filter((s) => s.isActive)
+                          .map((shop) => (
                             <SelectItem key={shop.id} value={shop.shopCode}>
                               <span className="flex items-center gap-2">
                                 <Store className="h-4 w-4 text-muted-foreground" />
@@ -185,9 +146,8 @@ export default function LoginPage() {
                               </span>
                             </SelectItem>
                           ))}
-                        </SelectContent>
-                      </Select>
-                    )}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="flex flex-col gap-2">
@@ -195,7 +155,7 @@ export default function LoginPage() {
                     <Input
                       id="shop-username"
                       type="text"
-                      placeholder="Enter your username"
+                      placeholder="admin or staff"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
                       autoComplete="username"
@@ -208,7 +168,7 @@ export default function LoginPage() {
                     <Input
                       id="shop-password"
                       type="password"
-                      placeholder="Enter your password"
+                      placeholder="Any password (prototype)"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       autoComplete="current-password"
@@ -228,7 +188,7 @@ export default function LoginPage() {
                   <Button
                     type="submit"
                     className="w-full"
-                    disabled={isSubmitting || isLoadingShops}
+                    disabled={isSubmitting}
                   >
                     {isSubmitting ? (
                       <>
@@ -242,18 +202,26 @@ export default function LoginPage() {
                       </>
                     )}
                   </Button>
+
+                  <p className="text-xs text-muted-foreground text-center">
+                    Try: username <span className="font-mono font-medium text-foreground">admin</span> or{" "}
+                    <span className="font-mono font-medium text-foreground">staff</span> with any password
+                  </p>
                 </form>
               </TabsContent>
 
               {/* Super Admin Tab */}
               <TabsContent value="super">
-                <form onSubmit={handleSuperAdminLogin} className="flex flex-col gap-4">
+                <form
+                  onSubmit={handleSuperAdminLogin}
+                  className="flex flex-col gap-4"
+                >
                   <div className="flex flex-col gap-2">
                     <Label htmlFor="super-username">Username</Label>
                     <Input
                       id="super-username"
                       type="text"
-                      placeholder="Super admin username"
+                      placeholder="superadmin"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
                       autoComplete="username"
@@ -266,7 +234,7 @@ export default function LoginPage() {
                     <Input
                       id="super-password"
                       type="password"
-                      placeholder="Super admin password"
+                      placeholder="Any password (prototype)"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       autoComplete="current-password"
@@ -300,6 +268,12 @@ export default function LoginPage() {
                       </>
                     )}
                   </Button>
+
+                  <p className="text-xs text-muted-foreground text-center">
+                    Try: username{" "}
+                    <span className="font-mono font-medium text-foreground">superadmin</span>{" "}
+                    with any password
+                  </p>
                 </form>
               </TabsContent>
             </Tabs>
@@ -307,5 +281,5 @@ export default function LoginPage() {
         </Card>
       </div>
     </div>
-  );
+  )
 }

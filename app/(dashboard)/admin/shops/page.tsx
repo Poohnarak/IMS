@@ -1,12 +1,10 @@
-"use client";
+"use client"
 
-import { useEffect, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, useMemo } from "react"
+import { useRouter } from "next/navigation"
 import {
   Building2,
   Plus,
-  Loader2,
-  AlertCircle,
   Search,
   MoreHorizontal,
   Power,
@@ -15,18 +13,18 @@ import {
   Trash2,
   BarChart3,
   Users,
-} from "lucide-react";
+} from "lucide-react"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
+} from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Badge } from "@/components/ui/badge"
 import {
   Dialog,
   DialogContent,
@@ -35,14 +33,14 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from "@/components/ui/dialog"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu"
 import {
   Table,
   TableBody,
@@ -50,7 +48,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "@/components/ui/table"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -60,193 +58,104 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { useAuth } from "@/lib/auth-context";
-import { apiFetch } from "@/lib/api";
-
-interface Shop {
-  id: number;
-  shopCode: string;
-  shopName: string;
-  userDbName: string;
-  appDbName: string;
-  isActive: boolean;
-  createdAt: string;
-}
-
-interface ShopStats {
-  shop: { id: number; shopCode: string; shopName: string; isActive: boolean };
-  users: { total: number; active: number };
-  data: {
-    products: number;
-    ingredients: number;
-    salesRecords: number;
-    purchases: number;
-  };
-  error?: string;
-}
+} from "@/components/ui/alert-dialog"
+import { useAuth } from "@/lib/auth-context"
+import { mockShops, type Shop } from "@/lib/mock-data"
 
 export default function ShopManagementPage() {
-  const { user, token } = useAuth();
-  const router = useRouter();
+  const { user } = useAuth()
+  const router = useRouter()
 
-  const [shops, setShops] = useState<Shop[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [shops, setShops] = useState<Shop[]>(mockShops)
+  const [searchQuery, setSearchQuery] = useState("")
 
   // Create shop dialog
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [createForm, setCreateForm] = useState({
     shopCode: "",
     shopName: "",
     adminUsername: "admin",
     adminPassword: "admin123",
-  });
-  const [isCreating, setIsCreating] = useState(false);
-  const [createError, setCreateError] = useState("");
+  })
+  const [createError, setCreateError] = useState("")
 
   // Stats dialog
-  const [statsShop, setStatsShop] = useState<Shop | null>(null);
-  const [stats, setStats] = useState<ShopStats | null>(null);
-  const [isLoadingStats, setIsLoadingStats] = useState(false);
+  const [statsShop, setStatsShop] = useState<Shop | null>(null)
 
   // Reset admin dialog
-  const [resetShop, setResetShop] = useState<Shop | null>(null);
+  const [resetShop, setResetShop] = useState<Shop | null>(null)
   const [resetForm, setResetForm] = useState({
     username: "admin",
     password: "admin123",
-  });
-  const [isResetting, setIsResetting] = useState(false);
+  })
 
   // Delete confirm
-  const [deleteShop, setDeleteShop] = useState<Shop | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const fetchShops = useCallback(async () => {
-    if (!token) return;
-    try {
-      const res = await apiFetch<{
-        success: boolean;
-        data: Shop[];
-        pagination: { total: number };
-      }>(`/api/superadmin/shops?search=${encodeURIComponent(searchQuery)}&limit=100`, {
-        token,
-      });
-      setShops(res.data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load shops");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [token, searchQuery]);
+  const [deleteShop, setDeleteShop] = useState<Shop | null>(null)
 
   useEffect(() => {
-    if (user?.role !== "SUPER_ADMIN") {
-      router.replace("/");
-      return;
+    if (user && user.role !== "SUPER_ADMIN") {
+      router.replace("/")
     }
-    fetchShops();
-  }, [user, router, fetchShops]);
+  }, [user, router])
 
-  async function handleCreateShop(e: React.FormEvent) {
-    e.preventDefault();
-    setCreateError("");
-    setIsCreating(true);
-    try {
-      await apiFetch("/api/superadmin/shops", {
-        method: "POST",
-        token: token ?? undefined,
-        body: JSON.stringify(createForm),
-      });
-      setIsCreateOpen(false);
-      setCreateForm({
-        shopCode: "",
-        shopName: "",
-        adminUsername: "admin",
-        adminPassword: "admin123",
-      });
-      fetchShops();
-    } catch (err) {
-      setCreateError(
-        err instanceof Error ? err.message : "Failed to create shop"
-      );
-    } finally {
-      setIsCreating(false);
+  const filteredShops = useMemo(() => {
+    if (!searchQuery.trim()) return shops
+    const q = searchQuery.toLowerCase()
+    return shops.filter(
+      (s) =>
+        s.shopCode.toLowerCase().includes(q) ||
+        s.shopName.toLowerCase().includes(q)
+    )
+  }, [shops, searchQuery])
+
+  function handleCreateShop(e: React.FormEvent) {
+    e.preventDefault()
+    setCreateError("")
+
+    if (shops.some((s) => s.shopCode === createForm.shopCode)) {
+      setCreateError("A shop with this code already exists.")
+      return
     }
+
+    const newShop: Shop = {
+      id: Date.now(),
+      shopCode: createForm.shopCode,
+      shopName: createForm.shopName,
+      isActive: true,
+      createdAt: new Date().toISOString(),
+    }
+    setShops([...shops, newShop])
+    setIsCreateOpen(false)
+    setCreateForm({
+      shopCode: "",
+      shopName: "",
+      adminUsername: "admin",
+      adminPassword: "admin123",
+    })
   }
 
-  async function handleToggleShop(shop: Shop) {
-    const endpoint = shop.isActive ? "disable" : "enable";
-    try {
-      await apiFetch(`/api/superadmin/shops/${shop.id}/${endpoint}`, {
-        method: "POST",
-        token: token ?? undefined,
-      });
-      fetchShops();
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : `Failed to ${endpoint} shop`
-      );
-    }
+  function handleToggleShop(shop: Shop) {
+    setShops(
+      shops.map((s) =>
+        s.id === shop.id ? { ...s, isActive: !s.isActive } : s
+      )
+    )
   }
 
-  async function handleDeleteShop() {
-    if (!deleteShop) return;
-    setIsDeleting(true);
-    try {
-      await apiFetch(`/api/superadmin/shops/${deleteShop.id}`, {
-        method: "DELETE",
-        token: token ?? undefined,
-      });
-      setDeleteShop(null);
-      fetchShops();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete shop");
-    } finally {
-      setIsDeleting(false);
-    }
+  function handleDeleteShop() {
+    if (!deleteShop) return
+    setShops(shops.filter((s) => s.id !== deleteShop.id))
+    setDeleteShop(null)
   }
 
-  async function handleResetAdmin(e: React.FormEvent) {
-    e.preventDefault();
-    if (!resetShop) return;
-    setIsResetting(true);
-    try {
-      await apiFetch(`/api/superadmin/shops/${resetShop.id}/reset-admin`, {
-        method: "POST",
-        token: token ?? undefined,
-        body: JSON.stringify(resetForm),
-      });
-      setResetShop(null);
-      setResetForm({ username: "admin", password: "admin123" });
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to reset admin"
-      );
-    } finally {
-      setIsResetting(false);
-    }
+  function handleResetAdmin(e: React.FormEvent) {
+    e.preventDefault()
+    // In prototype mode, just close the dialog
+    setResetShop(null)
+    setResetForm({ username: "admin", password: "admin123" })
   }
 
-  async function handleViewStats(shop: Shop) {
-    setStatsShop(shop);
-    setStats(null);
-    setIsLoadingStats(true);
-    try {
-      const res = await apiFetch<{ success: boolean; data: ShopStats }>(
-        `/api/superadmin/shops/${shop.id}/stats`,
-        { token: token ?? undefined }
-      );
-      setStats(res.data);
-    } catch {
-      setStats(null);
-    } finally {
-      setIsLoadingStats(false);
-    }
-  }
-
-  if (user?.role !== "SUPER_ADMIN") return null;
+  if (user?.role !== "SUPER_ADMIN") return null
 
   return (
     <div className="flex flex-col gap-6">
@@ -346,16 +255,7 @@ export default function ShopManagementPage() {
               )}
 
               <DialogFooter>
-                <Button type="submit" disabled={isCreating}>
-                  {isCreating ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Provisioning...
-                    </>
-                  ) : (
-                    "Create & Provision"
-                  )}
-                </Button>
+                <Button type="submit">Create & Provision</Button>
               </DialogFooter>
             </form>
           </DialogContent>
@@ -373,33 +273,23 @@ export default function ShopManagementPage() {
         />
       </div>
 
-      {error && (
-        <div
-          role="alert"
-          className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive"
-        >
-          {error}
-        </div>
-      )}
-
       {/* Shops Table */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base">Registered Shops</CardTitle>
           <CardDescription>
-            {shops.length} shop{shops.length !== 1 ? "s" : ""} total
+            {filteredShops.length} shop{filteredShops.length !== 1 ? "s" : ""}{" "}
+            total
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <div className="flex items-center justify-center py-10">
-              <Loader2 className="h-6 w-6 animate-spin text-primary" />
-            </div>
-          ) : shops.length === 0 ? (
+          {filteredShops.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 gap-2">
               <Building2 className="h-8 w-8 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">
-                No shops found. Create your first shop above.
+                {searchQuery
+                  ? "No shops match your search."
+                  : "No shops found. Create your first shop above."}
               </p>
             </div>
           ) : (
@@ -409,12 +299,6 @@ export default function ShopManagementPage() {
                   <TableRow>
                     <TableHead>Shop Code</TableHead>
                     <TableHead>Shop Name</TableHead>
-                    <TableHead className="hidden md:table-cell">
-                      User DB
-                    </TableHead>
-                    <TableHead className="hidden md:table-cell">
-                      App DB
-                    </TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="hidden sm:table-cell">
                       Created
@@ -425,18 +309,12 @@ export default function ShopManagementPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {shops.map((shop) => (
+                  {filteredShops.map((shop) => (
                     <TableRow key={shop.id}>
                       <TableCell className="font-mono text-sm font-medium">
                         {shop.shopCode}
                       </TableCell>
                       <TableCell>{shop.shopName}</TableCell>
-                      <TableCell className="hidden md:table-cell font-mono text-xs text-muted-foreground">
-                        {shop.userDbName}
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell font-mono text-xs text-muted-foreground">
-                        {shop.appDbName}
-                      </TableCell>
                       <TableCell>
                         <Badge
                           variant={shop.isActive ? "default" : "destructive"}
@@ -458,7 +336,7 @@ export default function ShopManagementPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem
-                              onClick={() => handleViewStats(shop)}
+                              onClick={() => setStatsShop(shop)}
                             >
                               <BarChart3 className="h-4 w-4 mr-2" />
                               View Stats
@@ -515,65 +393,35 @@ export default function ShopManagementPage() {
               {statsShop?.shopName} ({statsShop?.shopCode})
             </DialogTitle>
             <DialogDescription>
-              Usage statistics for this shop.
+              Usage statistics for this shop (prototype data).
             </DialogDescription>
           </DialogHeader>
-          {isLoadingStats ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-lg border border-border p-3">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                <Users className="h-3.5 w-3.5" />
+                Users
+              </div>
+              <div className="text-lg font-semibold text-foreground">3</div>
+              <div className="text-xs text-muted-foreground">2 active</div>
             </div>
-          ) : stats ? (
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-lg border border-border p-3">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                  <Users className="h-3.5 w-3.5" />
-                  Users
-                </div>
-                <div className="text-lg font-semibold text-foreground">
-                  {stats.users.total}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {stats.users.active} active
-                </div>
-              </div>
-              <div className="rounded-lg border border-border p-3">
-                <div className="text-xs text-muted-foreground mb-1">
-                  Products
-                </div>
-                <div className="text-lg font-semibold text-foreground">
-                  {stats.data.products}
-                </div>
-              </div>
-              <div className="rounded-lg border border-border p-3">
-                <div className="text-xs text-muted-foreground mb-1">
-                  Ingredients
-                </div>
-                <div className="text-lg font-semibold text-foreground">
-                  {stats.data.ingredients}
-                </div>
-              </div>
-              <div className="rounded-lg border border-border p-3">
-                <div className="text-xs text-muted-foreground mb-1">
-                  Sales Records
-                </div>
-                <div className="text-lg font-semibold text-foreground">
-                  {stats.data.salesRecords}
-                </div>
-              </div>
-              {stats.error && (
-                <div className="col-span-2 rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">
-                  {stats.error}
-                </div>
-              )}
+            <div className="rounded-lg border border-border p-3">
+              <div className="text-xs text-muted-foreground mb-1">Products</div>
+              <div className="text-lg font-semibold text-foreground">5</div>
             </div>
-          ) : (
-            <div className="flex items-center justify-center py-8 gap-2">
-              <AlertCircle className="h-5 w-5 text-destructive" />
-              <p className="text-sm text-muted-foreground">
-                Failed to load stats.
-              </p>
+            <div className="rounded-lg border border-border p-3">
+              <div className="text-xs text-muted-foreground mb-1">
+                Ingredients
+              </div>
+              <div className="text-lg font-semibold text-foreground">10</div>
             </div>
-          )}
+            <div className="rounded-lg border border-border p-3">
+              <div className="text-xs text-muted-foreground mb-1">
+                Sales Records
+              </div>
+              <div className="text-lg font-semibold text-foreground">128</div>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -598,7 +446,6 @@ export default function ShopManagementPage() {
                 onChange={(e) =>
                   setResetForm((p) => ({ ...p, username: e.target.value }))
                 }
-                required
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -610,20 +457,10 @@ export default function ShopManagementPage() {
                 onChange={(e) =>
                   setResetForm((p) => ({ ...p, password: e.target.value }))
                 }
-                required
               />
             </div>
             <DialogFooter>
-              <Button type="submit" disabled={isResetting}>
-                {isResetting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Resetting...
-                  </>
-                ) : (
-                  "Reset Admin"
-                )}
-              </Button>
+              <Button type="submit">Reset Admin</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -636,33 +473,22 @@ export default function ShopManagementPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete {deleteShop?.shopName}?</AlertDialogTitle>
+            <AlertDialogTitle>Delete Shop</AlertDialogTitle>
             <AlertDialogDescription>
-              This will remove the shop record from the system database. The
-              underlying PostgreSQL databases ({deleteShop?.userDbName},{" "}
-              {deleteShop?.appDbName}) will NOT be dropped automatically and
-              must be removed manually if desired.
+              Are you sure you want to delete{" "}
+              <span className="font-semibold">{deleteShop?.shopName}</span> (
+              {deleteShop?.shopCode})? This will remove the shop and all
+              associated databases. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteShop}
-              disabled={isDeleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {isDeleting ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Deleting...
-                </>
-              ) : (
-                "Delete Shop"
-              )}
+            <AlertDialogAction onClick={handleDeleteShop}>
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  );
+  )
 }

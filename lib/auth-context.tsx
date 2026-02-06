@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import React, {
   createContext,
@@ -6,21 +6,20 @@ import React, {
   useState,
   useEffect,
   useCallback,
-} from "react";
-import { apiFetch } from "./api";
+} from "react"
 
 export interface AuthUser {
-  id: number;
-  username: string;
-  role: "SUPER_ADMIN" | "ADMIN" | "STAFF";
-  shopCode?: string;
-  shopName?: string;
+  id: number
+  username: string
+  role: "SUPER_ADMIN" | "ADMIN" | "STAFF"
+  shopCode?: string
+  shopName?: string
 }
 
 interface AuthState {
-  user: AuthUser | null;
-  token: string | null;
-  isLoading: boolean;
+  user: AuthUser | null
+  token: string | null
+  isLoading: boolean
 }
 
 interface AuthContextValue extends AuthState {
@@ -28,82 +27,113 @@ interface AuthContextValue extends AuthState {
     username: string,
     password: string,
     shopCode?: string
-  ) => Promise<void>;
-  logout: () => void;
-  isSuperAdmin: boolean;
+  ) => Promise<void>
+  logout: () => void
+  isSuperAdmin: boolean
 }
 
-const AuthContext = createContext<AuthContextValue | null>(null);
+const AuthContext = createContext<AuthContextValue | null>(null)
 
-const TOKEN_KEY = "inv_token";
-const USER_KEY = "inv_user";
+const USER_KEY = "inv_user"
+
+// Mock users for the prototype
+const MOCK_USERS: AuthUser[] = [
+  {
+    id: 1,
+    username: "admin",
+    role: "ADMIN",
+    shopCode: "BAKERY01",
+    shopName: "Downtown Bakery",
+  },
+  {
+    id: 2,
+    username: "staff",
+    role: "STAFF",
+    shopCode: "BAKERY01",
+    shopName: "Downtown Bakery",
+  },
+  {
+    id: 3,
+    username: "superadmin",
+    role: "SUPER_ADMIN",
+  },
+]
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AuthState>({
     user: null,
     token: null,
     isLoading: true,
-  });
+  })
 
-  // Restore session from sessionStorage on mount
+  // Restore session on mount
   useEffect(() => {
     try {
-      const storedToken = sessionStorage.getItem(TOKEN_KEY);
-      const storedUser = sessionStorage.getItem(USER_KEY);
-      if (storedToken && storedUser) {
+      const storedUser = sessionStorage.getItem(USER_KEY)
+      if (storedUser) {
         setState({
-          token: storedToken,
+          token: "mock-token",
           user: JSON.parse(storedUser),
           isLoading: false,
-        });
+        })
       } else {
-        setState((s) => ({ ...s, isLoading: false }));
+        setState((s) => ({ ...s, isLoading: false }))
       }
     } catch {
-      setState((s) => ({ ...s, isLoading: false }));
+      setState((s) => ({ ...s, isLoading: false }))
     }
-  }, []);
+  }, [])
 
   const login = useCallback(
-    async (username: string, password: string, shopCode?: string) => {
-      const body: Record<string, string> = { username, password };
-      if (shopCode) body.shopCode = shopCode;
+    async (username: string, _password: string, shopCode?: string) => {
+      // Simulate network delay
+      await new Promise((resolve) => setTimeout(resolve, 500))
 
-      const res = await apiFetch<{
-        success: boolean;
-        data: { user: AuthUser; token: string };
-      }>("/api/auth/login", {
-        method: "POST",
-        body: JSON.stringify(body),
-      });
+      // Find matching mock user
+      const matchedUser = MOCK_USERS.find((u) => {
+        if (shopCode) {
+          return (
+            u.username.toLowerCase() === username.toLowerCase() &&
+            u.shopCode === shopCode
+          )
+        }
+        // Super admin login (no shopCode)
+        return (
+          u.username.toLowerCase() === username.toLowerCase() &&
+          u.role === "SUPER_ADMIN"
+        )
+      })
 
-      const { user, token } = res.data;
-      sessionStorage.setItem(TOKEN_KEY, token);
-      sessionStorage.setItem(USER_KEY, JSON.stringify(user));
-      setState({ user, token, isLoading: false });
+      if (!matchedUser) {
+        throw new Error(
+          "Invalid credentials. Try admin/admin, staff/staff, or superadmin/superadmin."
+        )
+      }
+
+      sessionStorage.setItem(USER_KEY, JSON.stringify(matchedUser))
+      setState({ user: matchedUser, token: "mock-token", isLoading: false })
     },
     []
-  );
+  )
 
   const logout = useCallback(() => {
-    sessionStorage.removeItem(TOKEN_KEY);
-    sessionStorage.removeItem(USER_KEY);
-    setState({ user: null, token: null, isLoading: false });
-  }, []);
+    sessionStorage.removeItem(USER_KEY)
+    setState({ user: null, token: null, isLoading: false })
+  }, [])
 
-  const isSuperAdmin = state.user?.role === "SUPER_ADMIN";
+  const isSuperAdmin = state.user?.role === "SUPER_ADMIN"
 
   return (
     <AuthContext.Provider value={{ ...state, login, logout, isSuperAdmin }}>
       {children}
     </AuthContext.Provider>
-  );
+  )
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext);
+  const context = useContext(AuthContext)
   if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error("useAuth must be used within an AuthProvider")
   }
-  return context;
+  return context
 }

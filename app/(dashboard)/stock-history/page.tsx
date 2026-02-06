@@ -22,7 +22,7 @@ export default function StockHistoryPage() {
 
   const filteredMovements = mockStockMovements.filter((movement) => {
     const matchesType = typeFilter === "all" || movement.type === typeFilter
-    const matchesDate = !dateFilter || movement.date === dateFilter
+    const matchesDate = !dateFilter || dateFilter === "all" || movement.date === dateFilter
     const matchesSearch = movement.itemName
       .toLowerCase()
       .includes(searchQuery.toLowerCase())

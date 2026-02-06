@@ -1,107 +1,61 @@
-"use client";
+"use client"
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
 import {
   Building2,
   Users,
   ShieldAlert,
   Activity,
-  Loader2,
-  AlertCircle,
-} from "lucide-react";
+} from "lucide-react"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { useAuth } from "@/lib/auth-context";
-import { apiFetch } from "@/lib/api";
-
-interface Overview {
-  totalShops: number;
-  activeShops: number;
-  disabledShops: number;
-  totalSuperAdmins: number;
-}
+} from "@/components/ui/card"
+import { useAuth } from "@/lib/auth-context"
+import { platformOverview } from "@/lib/mock-data"
 
 export default function SuperAdminOverviewPage() {
-  const { user, token } = useAuth();
-  const router = useRouter();
-  const [overview, setOverview] = useState<Overview | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
+  const { user } = useAuth()
+  const router = useRouter()
 
   useEffect(() => {
-    if (user?.role !== "SUPER_ADMIN") {
-      router.replace("/");
-      return;
+    if (user && user.role !== "SUPER_ADMIN") {
+      router.replace("/")
     }
+  }, [user, router])
 
-    async function fetchOverview() {
-      try {
-        const res = await apiFetch<{ success: boolean; data: Overview }>(
-          "/api/superadmin/overview",
-          { token: token ?? undefined }
-        );
-        setOverview(res.data);
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Failed to load overview"
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchOverview();
-  }, [user, token, router]);
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 gap-3">
-        <AlertCircle className="h-8 w-8 text-destructive" />
-        <p className="text-sm text-muted-foreground">{error}</p>
-      </div>
-    );
-  }
+  if (user?.role !== "SUPER_ADMIN") return null
 
   const stats = [
     {
       label: "Total Shops",
-      value: overview?.totalShops ?? 0,
+      value: platformOverview.totalShops,
       icon: Building2,
       description: "Registered on the platform",
     },
     {
       label: "Active Shops",
-      value: overview?.activeShops ?? 0,
+      value: platformOverview.activeShops,
       icon: Activity,
       description: "Currently operational",
     },
     {
       label: "Disabled Shops",
-      value: overview?.disabledShops ?? 0,
+      value: platformOverview.disabledShops,
       icon: ShieldAlert,
       description: "Temporarily suspended",
     },
     {
       label: "Super Admins",
-      value: overview?.totalSuperAdmins ?? 0,
+      value: platformOverview.totalSuperAdmins,
       icon: Users,
       description: "Platform administrators",
     },
-  ];
+  ]
 
   return (
     <div className="flex flex-col gap-6">
@@ -135,5 +89,5 @@ export default function SuperAdminOverviewPage() {
         ))}
       </div>
     </div>
-  );
+  )
 }

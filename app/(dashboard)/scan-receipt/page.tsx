@@ -218,12 +218,17 @@ export default function ScanReceiptPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="relative aspect-[3/4] max-h-64 w-full overflow-hidden rounded-lg bg-muted">
-              <ImageIcon
-                src={uploadedImage || "/placeholder.svg"}
-                alt="Receipt"
-                className="h-full w-full object-contain"
-              />
+            <div className="relative aspect-[3/4] max-h-64 w-full overflow-hidden rounded-lg bg-muted flex items-center justify-center">
+              {uploadedImage ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={uploadedImage}
+                  alt="Uploaded receipt"
+                  className="h-full w-full object-contain"
+                />
+              ) : (
+                <ImageIcon className="h-12 w-12 text-muted-foreground" />
+              )}
             </div>
           </CardContent>
         </Card>
