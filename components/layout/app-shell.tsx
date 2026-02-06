@@ -38,7 +38,7 @@ const shopNavItems = [
   { title: "Ingredients", href: "/ingredients", icon: Wheat },
   { title: "Stock History", href: "/stock-history", icon: History },
   { title: "Import Sales", href: "/import-sales", icon: FileSpreadsheet },
-  { title: "Scan Receipt", href: "/scan-receipt", icon: Camera },
+  { title: "Receipt", href: "/scan-receipt", icon: Camera },
 ]
 
 const adminNavItems = [
